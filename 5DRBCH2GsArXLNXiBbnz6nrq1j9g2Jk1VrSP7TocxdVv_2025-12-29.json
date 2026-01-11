@@ -1,0 +1,58 @@
+[
+  {
+    "mint": "a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump",
+    "qty": 0,
+    "costSol": 0,
+    "avgEntrySol": 0,
+    "realizedPnlSol": -0.001335585000000028,
+    "feesSol": 0.009358378,
+    "firstTs": 1767017723,
+    "lastTs": 1767020304,
+    "isOpen": false,
+    "trades": [
+      {
+        "signature": "5AXz9U6LBtgskJP86oBHKJi1S3RsDt1Tt7KRhKQ3hnDZusKh9RGNVVcz1gRfwQ9g2kYxqiravAUE8CFFyzAfNDfu",
+        "timestamp": 1767017723,
+        "source": "PUMP_AMM",
+        "wallet": "5DRBCH2GsArXLNXiBbnz6nrq1j9g2Jk1VrSP7TocxdVv",
+        "kind": "BUY",
+        "baseMint": "a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump",
+        "baseAmount": 536.267556,
+        "swapSol": 0.296703888,
+        "networkFeeSol": 0.000405,
+        "wsolFeeSol": 0.000296112,
+        "nativeTipSol": 0.004,
+        "totalFeesSol": 0.004701112
+      },
+      {
+        "signature": "yafzMbVSMD1dkqP5abS7ZrCRXVURCnjGfFxpHSRjegs15CD9m5pZR3Cxx3EGtd2LvPUSF6VC1WD3FvW8gHDjeB7",
+        "timestamp": 1767019107,
+        "source": "PUMP_AMM",
+        "wallet": "5DRBCH2GsArXLNXiBbnz6nrq1j9g2Jk1VrSP7TocxdVv",
+        "kind": "SELL",
+        "baseMint": "a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump",
+        "baseAmount": 268.133778,
+        "swapSol": 0.154758434,
+        "networkFeeSol": 0.000405,
+        "wsolFeeSol": 0,
+        "nativeTipSol": 0.001947584,
+        "totalFeesSol": 0.002352584
+      },
+      {
+        "signature": "2xoV5pZbebDoQfyVxaLD9iG8nNfnqh5CXDHvoKtscVgCtGHwggXBpGohCiLcp14HitnjdG45YnbYfLGdsUohmmuw",
+        "timestamp": 1767020304,
+        "source": "PUMP_AMM",
+        "wallet": "5DRBCH2GsArXLNXiBbnz6nrq1j9g2Jk1VrSP7TocxdVv",
+        "kind": "SELL",
+        "baseMint": "a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump",
+        "baseAmount": 268.133778,
+        "swapSol": 0.149968247,
+        "networkFeeSol": 0.000405,
+        "wsolFeeSol": 0,
+        "nativeTipSol": 0.001899682,
+        "totalFeesSol": 0.0023046819999999997
+      }
+    ],
+    "name": "WhiteWhale (The White Whale)"
+  }
+]

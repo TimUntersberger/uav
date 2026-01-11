@@ -1,0 +1,44 @@
+[
+  {
+    "mint": "8B539DbrQwDyiJdZXxCXpfQgRaZFixoFPhbqezPtaEG7",
+    "qty": 0,
+    "costSol": 0,
+    "avgEntrySol": 0,
+    "realizedPnlSol": -0.005272926000000011,
+    "feesSol": 0.004189162,
+    "firstTs": 1767107488,
+    "lastTs": 1767107494,
+    "isOpen": false,
+    "trades": [
+      {
+        "signature": "aJkd7Y1uPbzQhGe7RCADt7d7rbGXHVhxURrkc6ApcJtqsVL5rWwx6SjwLJx7YGGJBgdLN199dDEa6VsmpY2ww8x",
+        "timestamp": 1767107488,
+        "source": "SYSTEM_PROGRAM",
+        "wallet": "5DRBCH2GsArXLNXiBbnz6nrq1j9g2Jk1VrSP7TocxdVv",
+        "kind": "BUY",
+        "baseMint": "8B539DbrQwDyiJdZXxCXpfQgRaZFixoFPhbqezPtaEG7",
+        "baseAmount": 394791.241818,
+        "swapSol": 0.099,
+        "networkFeeSol": 0.000405,
+        "wsolFeeSol": 0,
+        "nativeTipSol": 0.002,
+        "totalFeesSol": 0.002405
+      },
+      {
+        "signature": "4ssLBot5Kzgd6vWxyp3UDQAHoc7v2tA66BbYCvj2GaRhMxuJ9YrLpiBDBjhFks79LiGC6ageZ3jL8fhoCTXqzxGw",
+        "timestamp": 1767107494,
+        "source": "SYSTEM_PROGRAM",
+        "wallet": "5DRBCH2GsArXLNXiBbnz6nrq1j9g2Jk1VrSP7TocxdVv",
+        "kind": "SELL",
+        "baseMint": "8B539DbrQwDyiJdZXxCXpfQgRaZFixoFPhbqezPtaEG7",
+        "baseAmount": 394791.241818,
+        "swapSol": 0.097916236,
+        "networkFeeSol": 0.000405,
+        "wsolFeeSol": 0,
+        "nativeTipSol": 0.001379162,
+        "totalFeesSol": 0.001784162
+      }
+    ],
+    "name": "TRAITOR (TRAITOR TIM)"
+  }
+]

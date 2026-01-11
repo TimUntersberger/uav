@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Positions Viewer</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+      h1 { margin: 0 0 12px; }
+      .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 16px; }
+      label { display: grid; gap: 6px; font-size: 14px; }
+      input, select, button { font: inherit; padding: 8px 10px; }
+      button { cursor: pointer; }
+      .muted { color: #666; font-size: 13px; }
+      .error { color: #b00020; white-space: pre-wrap; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border-bottom: 1px solid #e6e6e6; padding: 10px 8px; text-align: left; }
+      th { position: sticky; top: 0; background: #fff; }
+      td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+      .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; }
+      .pos { color: #0a7a0a; }
+      .neg { color: #b00020; }
+      .grid { display: grid; gap: 12px; }
+      .card { border: 1px solid #eee; border-radius: 10px; padding: 12px; }
+      .summary { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .spacer { flex: 1; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Positions Viewer</h1>
+    <div class="muted">
+      Calls <code>/api/positions</code> on your Fastify server. Example:
+      <span class="pill">http://localhost:8787</span>
+    </div>
+
+    <div class="row" style="margin-top: 14px;">
+      <label>
+        Server URL
+        <input id="serverUrl" type="text" value="http://localhost:8787" />
+      </label>
+
+      <label>
+        Date (UTC)
+        <input id="date" type="date" />
+      </label>
+
+      <label>
+        Wallet (optional)
+        <input id="wallet" type="text" placeholder="defaults to server config wallet" />
+      </label>
+
+      <label>
+        Include fees in PnL
+        <select id="includeFeesInPnl">
+          <option value="true" selected>true</option>
+          <option value="false">false</option>
+        </select>
+      </label>
+
+      <label>
+        Cache
+        <select id="cache">
+          <option value="true" selected>true</option>
+          <option value="false">false</option>
+        </select>
+      </label>
+
+      <button id="loadBtn">Load</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="summary">
+          <div><strong>Status:</strong> <span id="status">Idle</span></div>
+
+          <div class="pill">
+            Realized PnL:
+            <strong id="totalRealized" class="num">—</strong> SOL
+          </div>
+
+          <div class="spacer"></div>
+          <div class="muted" id="meta"></div>
+        </div>
+        <div class="error" id="error" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <div class="card" style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Mint</th>
+              <th class="num">Qty</th>
+              <th class="num">Avg Entry (SOL)</th>
+              <th class="num">Cost (SOL)</th>
+              <th class="num">Realized PnL (SOL)</th>
+              <th class="num">Fees (SOL)</th>
+              <th>Open</th>
+              <th class="num">First Ts</th>
+              <th class="num">Last Ts</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="10" class="muted">No data loaded.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function setStatus(text) { $("status").textContent = text; }
+      function showError(text) {
+        const el = $("error");
+        if (!text) { el.style.display = "none"; el.textContent = ""; return; }
+        el.style.display = "block";
+        el.textContent = text;
+      }
+
+      function formatNum(n, digits = 6) {
+        if (n === null || n === undefined || Number.isNaN(Number(n))) return "";
+        const x = Number(n);
+        return x.toLocaleString(undefined, { maximumFractionDigits: digits });
+      }
+
+      function formatTs(ts) {
+        if (!ts) return "";
+        // server timestamps are unix seconds; show ISO
+        const d = new Date(Number(ts) * 1000);
+        if (Number.isNaN(d.getTime())) return String(ts);
+        return d.toISOString();
+      }
+
+      function clsPnl(n) {
+        const x = Number(n || 0);
+        if (x > 0) return "pos";
+        if (x < 0) return "neg";
+        return "";
+      }
+
+      function escapeHtml(s) {
+        return s.replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        }[c]));
+      }
+
+      function renderTotals(positions) {
+        let realized = 0;
+        let fees = 0;
+
+        for (const p of positions || []) {
+          realized += Number(p.realizedPnlSol || 0);
+          fees += Number(p.feesSol || 0);
+        }
+
+        const net = realized - fees;
+
+        $("totalRealized").textContent = formatNum(realized, 9) || "0";
+
+        $("totalRealized").className = `num ${clsPnl(realized)}`;
+      }
+
+      function renderRows(positions) {
+        const tbody = $("tbody");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(positions) || positions.length === 0) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="10" class="muted">No positions returned.</td>`;
+          tbody.appendChild(tr);
+          return;
+        }
+
+        // Sort: open first, then largest qty desc
+        positions.sort((a, b) => {
+          const ao = a.isOpen ? 1 : 0;
+          const bo = b.isOpen ? 1 : 0;
+          if (ao !== bo) return bo - ao;
+          return (Number(b.qty) || 0) - (Number(a.qty) || 0);
+        });
+
+        for (const p of positions) {
+          const tr = document.createElement("tr");
+          const name = p.name ?? p.mint;
+          tr.innerHTML = `
+            <td>${escapeHtml(String(name))}</td>
+            <td><code>${escapeHtml(String(p.mint || ""))}</code></td>
+            <td class="num">${formatNum(p.qty, 6)}</td>
+            <td class="num">${formatNum(p.avgEntrySol, 9)}</td>
+            <td class="num">${formatNum(p.costSol, 9)}</td>
+            <td class="num ${clsPnl(p.realizedPnlSol)}">${formatNum(p.realizedPnlSol, 9)}</td>
+            <td class="num">${formatNum(p.feesSol, 9)}</td>
+            <td>${p.isOpen ? "✅" : "—"}</td>
+            <td class="num">${escapeHtml(formatTs(p.firstTs))}</td>
+            <td class="num">${escapeHtml(formatTs(p.lastTs))}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      async function load() {
+        showError("");
+        setStatus("Loading...");
+        $("meta").textContent = "";
+        renderTotals([]); // reset while loading
+
+        const serverUrl = $("serverUrl").value.trim().replace(/\/+$/, "");
+        const date = $("date").value;
+        const wallet = $("wallet").value.trim();
+        const includeFeesInPnl = $("includeFeesInPnl").value;
+        const cache = $("cache").value;
+
+        if (!serverUrl) { setStatus("Idle"); showError("Server URL is required."); return; }
+        if (!date) { setStatus("Idle"); showError("Date is required."); return; }
+
+        const params = new URLSearchParams();
+        params.set("date", date);
+        params.set("includeFeesInPnl", includeFeesInPnl);
+        params.set("cache", cache);
+        if (wallet) params.set("wallet", wallet);
+
+        const url = `${serverUrl}/api/positions?${params.toString()}`;
+
+        try {
+          const res = await fetch(url);
+          const data = await res.json().catch(() => null);
+
+          if (!res.ok) {
+            const msg = data?.error ? String(data.error) : `HTTP ${res.status}`;
+            throw new Error(msg);
+          }
+
+          if (!data || data.ok !== true) {
+            throw new Error("Unexpected response shape from server.");
+          }
+
+          const positions = Array.isArray(data.positions) ? data.positions : [];
+
+          renderTotals(positions);
+          renderRows(positions);
+
+          $("meta").textContent =
+            `wallet=${data.wallet} | date=${data.date} | feesInPnl=${data.options?.includeFeesInPnl} | cache=${data.options?.cache}`;
+          setStatus("Loaded");
+        } catch (e) {
+          setStatus("Idle");
+          renderRows([]);
+          renderTotals([]);
+          showError(String(e?.message || e));
+        }
+      }
+
+      // Default date: today (UTC)
+      (function init() {
+        const d = new Date();
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        $("date").value = `${yyyy}-${mm}-${dd}`;
+
+        $("loadBtn").addEventListener("click", load);
+        document.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") load();
+        });
+      })();
+    </script>
+  </body>
+</html>
